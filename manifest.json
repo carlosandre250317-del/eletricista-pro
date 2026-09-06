@@ -1,0 +1,25 @@
+{
+  "name": "Eletricista Pro — Calculadora & App de Campo NBR 5410",
+  "short_name": "Eletricista Pro",
+  "description": "Calculadora técnica de dimensionamento elétrico NBR 5410, queda de tensão, eletrodutos, motores e gerador de orçamentos 2026.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity", "business"]
+}

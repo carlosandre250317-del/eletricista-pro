@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#08080A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Eletricista Pro">
+  <meta name="description" content="Calculadora técnica de dimensionamento elétrico NBR 5410, queda de tensão, eletrodutos, motores e gerador de orçamentos 2026.">
+  
+  <title>Eletricista Pro — Calculadora & App de Campo NBR 5410</title>
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icons/favicon.svg">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/components.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       HEADER SUPERIOR
+       ======================================================================== -->
+  <header class="app-header">
+    <a href="#" class="header-brand">
+      <div class="brand-icon-box">
+        <svg viewBox="0 0 100 100">
+          <polygon points="53,18 34,48 48,48 41,80 70,44 55,44"/>
+        </svg>
+      </div>
+      <div class="brand-text-wrap">
+        <div class="brand-title">ELETRICISTA <span>PRO</span></div>
+        <div class="brand-tag">NBR 5410 • SUITE DE CAMPO</div>
+      </div>
+    </a>
+
+    <div class="header-status-badge">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Offline Pronto</span>
+    </div>
+  </header>
+
+  <!-- Container de Toasts -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ========================================================================
+       CONTEÚDO PRINCIPAL (SPA TABS)
+       ======================================================================== -->
+  <main class="main-container">
+
+    <!-- ====================================================================
+         ABA 1: CONDUTORES & QUEDA DE TENSÃO
+         ==================================================================== -->
+    <section class="tab-pane active" id="tab-condutores">
+      <div class="module-header">
+        <div class="module-title-group">
+          <h2>⚡ Dimensionamento de Cabos</h2>
+          <p>Capacidade de Corrente (Iz) e Limite de Queda de Tensão (ΔV%)</p>
+        </div>
+        <span class="norma-badge">NBR 5410</span>
+      </div>
+
+      <form id="form-condutor" onsubmit="event.preventDefault();">
+        <div class="calc-card">
+          <div class="card-title-row">
+            <h3>1. Parâmetros da Carga</h3>
+            <span class="card-subtitle">Potência e Tensão</span>
+          </div>
+
+          <div class="form-grid">
+            <!-- Potência -->
+            <div class="form-group">
+              <label class="form-label" for="cond-potencia">
+                Potência da Carga
+                <span class="label-info">Ex: 7500W chuveiro</span>
+              </label>
+              <div class="input-wrap">
+                <input type="number" id="cond-potencia" class="form-control has-addon" value="7500" min="1" step="any" inputmode="decimal">
+                <input type="hidden" id="cond-tipo-potencia" value="W">
+              </div>
+              <div class="segmented-control" style="margin-top:6px;">
+                <button type="button" class="segment-btn segment-potencia active" data-val="W">Watts (W)</button>
+                <button type="button" class="segment-btn segment-potencia" data-val="kW">kW</button>
+                <button type="button" class="segment-btn segment-potencia" data-val="VA">VA</button>
+                <button type="button" class="segment-btn segment-potencia" data-val="kVA">kVA</button>
+              </div>
+            </div>
+
+            <!-- Tensão -->
+            <div class="form-group">
+              <label class="form-label" for="cond-tensao">Tensão Nominal (V)</label>
+              <select id="cond-tensao" class="form-select">
+                <option value="127">127 V (Monofásico)</option>
+                <option value="220" selected>220 V (F+N ou F+F)</option>
+                <option value="380">380 V (Trifásico / Bifásico)</option>
+              </select>
+            </div>
+
+            <!-- Sistema -->
+            <div class="form-group">
+              <label class="form-label" for="cond-sistema">Sistema de Alimentação</label>
+              <select id="cond-sistema" class="form-select">
+                <option value="mono" selected>Monofásico (Fase + Neutro)</option>
+                <option value="bi">Bifásico (Fase + Fase)</option>
+                <option value="tri">Trifásico (3 Fases / 3F + N)</option>
+              </select>
+            </div>
+
+            <!-- Fator de Potência -->
+            <div class="form-group">
+              <label class="form-label" for="cond-fp">
+                Fator de Potência (cos φ)
+                <span class="label-info">1.0 resistivo | 0.85 indutivo</span>
+              </label>
+              <input type="number" id="cond-fp" class="form-control" value="0.95" min="0.5" max="1.0" step="0.01" inputmode="decimal">
+            </div>
+          </div>
+        </div>
+
+        <div class="calc-card">
+          <div class="card-title-row">
+            <h3>2. Circuito & Instalação</h3>
+            <span class="card-subtitle">Distância e Método de Instalação</span>
+          </div>
+
+          <div class="form-grid">
+            <!-- Distância -->
+            <div class="form-group">
+              <label class="form-label" for="cond-distancia">
+                Distância até a Carga (L)
+                <span class="label-info">Em metros</span>
+              </label>
+              <div class="input-wrap">
+                <input type="number" id="cond-distancia" class="form-control has-addon" value="25" min="1" step="any" inputmode="decimal">
+                <span class="input-addon">metros</span>
+              </div>
+            </div>
+
+            <!-- Tipo de Circuito -->
+            <div class="form-group">
+              <label class="form-label" for="cond-tipo-circuito">Finalidade do Circuito</label>
+              <select id="cond-tipo-circuito" class="form-select">
+                <option value="forca" selected>Força / Tomadas TUG-TUE (Mín. 2,5 mm²)</option>
+                <option value="iluminacao">Iluminação Exclusiva (Mín. 1,5 mm²)</option>
+              </select>
+            </div>
+
+            <!-- Método de Instalação NBR 5410 -->
+            <div class="form-group">
+              <label class="form-label" for="cond-metodo">Método de Instalação</label>
+              <select id="cond-metodo" class="form-select">
+                <option value="B1" selected>B1 - Eletroduto embutido em alvenaria</option>
+                <option value="B2">B2 - Cabo multipolar em eletroduto em alvenaria</option>
+                <option value="A1">A1 - Condutores em parede termicamente isolante</option>
+                <option value="C">C - Cabos sobre parede ou bandeja</option>
+                <option value="D">D - Eletroduto enterrado no solo</option>
+              </select>
+            </div>
+
+            <!-- Isolação -->
+            <div class="form-group">
+              <label class="form-label" for="cond-isolacao">Isolação do Cabo</label>
+              <select id="cond-isolacao" class="form-select">
+                <option value="pvc" selected>PVC 70°C (Antichama flexível comum)</option>
+                <option value="xlpe">XLPE / EPR 90°C (Alta temperatura / Potência)</option>
+              </select>
+            </div>
+
+            <!-- Fator de Correção: Temperatura -->
+            <div class="form-group">
+              <label class="form-label" for="cond-temp">Temperatura Ambiente (°C)</label>
+              <select id="cond-temp" class="form-select">
+                <option value="20">20 °C (FCT = 1.12)</option>
+                <option value="25">25 °C (FCT = 1.06)</option>
+                <option value="30" selected>30 °C (Padrão NBR - FCT = 1.00)</option>
+                <option value="35">35 °C (FCT = 0.94)</option>
+                <option value="40">40 °C (FCT = 0.87)</option>
+                <option value="45">45 °C (FCT = 0.79)</option>
+              </select>
+            </div>
+
+            <!-- Fator de Correção: Agrupamento -->
+            <div class="form-group">
+              <label class="form-label" for="cond-circuitos-agrupados">Circuitos no Mesmo Eletroduto</label>
+              <select id="cond-circuitos-agrupados" class="form-select">
+                <option value="1" selected>1 circuito exclusivo (FCA = 1.00)</option>
+                <option value="2">2 circuitos agrupados (FCA = 0.80)</option>
+                <option value="3">3 circuitos agrupados (FCA = 0.70)</option>
+                <option value="4">4 circuitos agrupados (FCA = 0.65)</option>
+                <option value="5">5 circuitos agrupados (FCA = 0.60)</option>
+                <option value="6">6 circuitos agrupados (FCA = 0.57)</option>
+              </select>
+            </div>
+
+            <!-- Limite de Queda de Tensão -->
+            <div class="form-group full-width">
+              <div class="slider-wrap">
+                <div class="slider-val-box">
+                  <label class="form-label" for="cond-limite-queda" style="margin:0;">Limite Máximo de Queda de Tensão Admissível</label>
+                  <span class="slider-val-text" id="val-limite-queda">4.0%</span>
+                </div>
+                <input type="range" id="cond-limite-queda" class="form-range" min="1.0" max="7.0" step="0.5" value="4.0">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-dim);">
+                  <span>1.0% (Crítico)</span>
+                  <span>4.0% (Padrão Terminal NBR)</span>
+                  <span>7.0% (Total Geral)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- CARD DE RESULTADO CONDUTOR -->
+      <div class="result-box">
+        <div class="result-hero">
+          <div>
+            <div class="result-hero-title">Bitola Recomendada do Cabo de Fase</div>
+            <div class="result-hero-value" id="res-cond-bitola">6.0 mm²</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="result-hero-title">Queda de Tensão Real</div>
+            <div class="result-hero-value" id="res-cond-queda" style="color:var(--accent-cyan); font-size:1.6rem;">2.15% (4.7V)</div>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card">
+            <span class="metric-label">Corrente de Projeto (IB)</span>
+            <span class="metric-val" id="res-cond-ib">34.1 A</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Corrente Corrigida (IB')</span>
+            <span class="metric-val" id="res-cond-ib-corrigido">34.1 A</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Capacidade do Cabo (Iz)</span>
+            <span class="metric-val highlight" id="res-cond-iz">36.0 A</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Cabo Neutro (N)</span>
+            <span class="metric-val" id="res-cond-neutro">6.0 mm²</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Cabo Terra (PE)</span>
+            <span class="metric-val success" id="res-cond-terra">6.0 mm²</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Critério Dimensionador</span>
+            <span class="metric-val" id="res-cond-criterio" style="font-size:0.85rem;">Iz</span>
+          </div>
+        </div>
+
+        <div id="callout-queda-cond" class="status-callout ok">
+          <span>✅</span>
+          <div>Instalação conforme NBR 5410. Condutor 100% protegido e sem perdas de energia.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         ABA 2: PROTEÇÃO (DISJUNTORES, DR & DPS)
+         ==================================================================== -->
+    <section class="tab-pane" id="tab-protecao">
+      <div class="module-header">
+        <div class="module-title-group">
+          <h2>🛡️ Proteção de Circuitos</h2>
+          <p>Disjuntores Termomagnéticos (Curvas B/C/D), DR 30mA e DPS Classe II</p>
+        </div>
+        <span class="norma-badge">NBR 5410</span>
+      </div>
+
+      <form id="form-protecao" onsubmit="event.preventDefault();">
+        <div class="calc-card">
+          <div class="card-title-row">
+            <h3>Parâmetros de Coordenação</h3>
+            <span class="card-subtitle">Regra de Ouro: IB ≤ In ≤ Iz</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="prot-ib">Corrente de Projeto do Circuito (IB)</label>
+              <div class="input-wrap">
+                <input type="number" id="prot-ib" class="form-control has-addon" value="34.1" min="0.5" step="any" inputmode="decimal">
+                <span class="input-addon">Ampères</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prot-iz">Capacidade de Corrente do Cabo (Iz)</label>
+              <div class="input-wrap">
+                <input type="number" id="prot-iz" class="form-control has-addon" value="36.0" min="1" step="any" inputmode="decimal">
+                <span class="input-addon">Ampères</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prot-tipo-carga">Tipo de Equipamento / Carga</label>
+              <select id="prot-tipo-carga" class="form-select">
+                <option value="padrao" selected>Tomadas em geral, Iluminação LED, Ar-Condicionado (Curva C)</option>
+                <option value="resistiva">Chuveiro simples, Forno resistivo, Aquecedor de passagem (Curva B)</option>
+                <option value="motor_pesado">Motores industriais de grande porte, Transformadores (Curva D)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prot-esquema-aterramento">Esquema de Aterramento</label>
+              <select id="prot-esquema-aterramento" class="form-select">
+                <option value="TNS" selected>TN-S (Neutro e Terra separados no QDC)</option>
+                <option value="TNC">TN-C (Condutor PEN combinado)</option>
+                <option value="TT">TT (Eletrodos de terra independentes)</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label" for="prot-exposicao-dps">Nível de Exposição a Raios / Surtos (DPS)</label>
+              <select id="prot-exposicao-dps" class="form-select">
+                <option value="medio" selected>Médio: Zona urbana / Residencial padrão (DPS Classe II - 45 kA)</option>
+                <option value="alto">Alto: Zona rural, topo de morro ou áreas descampadas (DPS Classe II - 60 kA)</option>
+                <option value="com_spda">Estrutura com Para-raios SPDA externo (DPS Classe I + II - 12.5 kA / 60 kA)</option>
+                <option value="baixo">Baixo: Apartamento em andar intermediário (DPS Classe II - 20 kA)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- RESULTADO PROTEÇÃO -->
+      <div class="result-box">
+        <div class="result-hero">
+          <div>
+            <div class="result-hero-title">Disjuntor Termomagnético Recomendado</div>
+            <div class="result-hero-value" id="res-prot-disjuntor">40 A (Curva C)</div>
+          </div>
+          <div>
+            <div class="result-hero-title">Dispositivo DR (IDR)</div>
+            <div class="result-hero-value" id="res-prot-dr" style="color:var(--accent-cyan); font-size:1.6rem;">40 A / 30mA</div>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card" style="grid-column: 1 / -1;">
+            <span class="metric-label">Curva de Disparo Selecionada</span>
+            <span class="metric-val highlight" id="res-prot-curva-info" style="font-size:1rem;">Curva C (5 a 10 x In)</span>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;" id="res-prot-curva-desc">Padrão residencial: protege contra sobrecargas e não desarma com o pico momentâneo de motores e ar-condicionado.</p>
+          </div>
+
+          <div class="metric-card" style="grid-column: 1 / -1;">
+            <span class="metric-label">DPS Recomendado (Proteção contra Surtos/Raios)</span>
+            <span class="metric-val success" id="res-prot-dps" style="font-size:1.1rem;">Classe II (45 kA)</span>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;" id="res-prot-dps-desc">Modo Comum: 1 DPS por Fase + 1 DPS no Neutro conectados ao Barramento de Terra (PE).</p>
+          </div>
+        </div>
+
+        <div id="callout-prot-status" class="status-callout ok">
+          <span>🛡️</span>
+          <div>Coordenação normatizada perfeita. Proteção total do circuito contra curto-circuito, sobrecarga e choque elétrico.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         ABA 3: ELETRODUTOS & PREVISÃO DE CARGAS
+         ==================================================================== -->
+    <section class="tab-pane" id="tab-eletrodutos">
+      <div class="module-header">
+        <div class="module-title-group">
+          <h2>📐 Eletrodutos & Cargas</h2>
+          <p>Taxa de Ocupação Máxima de 40% e Previsão Automática de Cargas</p>
+        </div>
+        <span class="norma-badge">NBR 5410</span>
+      </div>
+
+      <div class="calc-card">
+        <div class="card-title-row">
+          <h3>Calculadora de Taxa de Ocupação</h3>
+          <span class="card-subtitle">Regra dos 40% (NBR 5410 Item 6.2.11)</span>
+        </div>
+
+        <p style="font-size:0.8125rem; color:var(--text-muted); margin-bottom:14px;">
+          Adicione os cabos que passarão pelo mesmo conduíte para calcular automaticamente o diâmetro nominal seguro.
+        </p>
+
+        <!-- Adicionar Cabo -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+          <div style="flex:2; min-width:140px;">
+            <select id="select-bitola-add" class="form-select">
+              <option value="1.5">Cabo 1.5 mm²</option>
+              <option value="2.5" selected>Cabo 2.5 mm²</option>
+              <option value="4.0">Cabo 4.0 mm²</option>
+              <option value="6.0">Cabo 6.0 mm²</option>
+              <option value="10.0">Cabo 10.0 mm²</option>
+              <option value="16.0">Cabo 16.0 mm²</option>
+              <option value="25.0">Cabo 25.0 mm²</option>
+            </select>
+          </div>
+          <div style="flex:1; min-width:80px;">
+            <input type="number" id="input-qtd-cabo-add" class="form-control" value="3" min="1" max="50">
+          </div>
+          <button type="button" id="btn-add-cabo" class="btn btn-primary btn-sm" style="height:46px; padding:0 16px;">+ Inserir Cabos</button>
+        </div>
+
+        <!-- Lista Dinâmica de Cabos -->
+        <div class="dynamic-list" id="lista-cabos-eletroduto"></div>
+
+        <!-- Resultado Eletroduto -->
+        <div class="result-box" style="margin-top:12px;">
+          <div class="result-hero">
+            <div>
+              <div class="result-hero-title">Eletroduto Mínimo Recomendado</div>
+              <div class="result-hero-value" id="res-eletroduto-nome">DN 25 (3/4")</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="result-hero-title">Taxa de Ocupação Real</div>
+              <div class="result-hero-value" id="res-eletroduto-ocupacao" style="color:var(--accent-cyan); font-size:1.6rem;">31.1%</div>
+            </div>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric-card">
+              <span class="metric-label">Área Total dos Cabos</span>
+              <span class="metric-val" id="res-eletroduto-area-cabos">30.5 mm²</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Área Útil do Conduíte</span>
+              <span class="metric-val" id="res-eletroduto-area-util">130.7 mm²</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Limite Permitido</span>
+              <span class="metric-val highlight" id="res-eletroduto-limite">40%</span>
+            </div>
+          </div>
+
+          <div id="callout-eletroduto" class="status-callout ok"></div>
+        </div>
+      </div>
+
+      <!-- PREVISÃO DE CARGAS POR AMBIENTE -->
+      <div class="calc-card">
+        <div class="card-title-row">
+          <h3>Previsão de Cargas por Ambiente</h3>
+          <span class="card-subtitle">NBR 5410 Item 9.5.2</span>
+        </div>
+
+        <form id="form-previsao" onsubmit="event.preventDefault();">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="prev-ambiente">Tipo de Cômodo / Ambiente</label>
+              <select id="prev-ambiente" class="form-select">
+                <option value="sala" selected>Sala / Quarto / Escritório (1 TUG a cada 5m)</option>
+                <option value="cozinha">Cozinha / Copa (1 TUG a cada 3.5m - 600VA)</option>
+                <option value="lavanderia">Lavanderia / Área de Serviço (1 TUG a cada 3.5m)</option>
+                <option value="banheiro">Banheiro (Mín. 1 TUG de 600VA junto ao lavatório)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prev-area">Área do Cômodo (m²)</label>
+              <div class="input-wrap">
+                <input type="number" id="prev-area" class="form-control has-addon" value="12" min="1" step="0.1" inputmode="decimal">
+                <span class="input-addon">m²</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prev-perimetro">Perímetro das Paredes (m)</label>
+              <div class="input-wrap">
+                <input type="number" id="prev-perimetro" class="form-control has-addon" value="14" min="1" step="0.1" inputmode="decimal">
+                <span class="input-addon">metros</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-box" style="margin-top:14px;">
+            <div class="result-hero">
+              <div>
+                <div class="result-hero-title">Carga Mínima de Iluminação</div>
+                <div class="result-hero-value" id="res-prev-ilum">160 VA</div>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;" id="res-prev-ilum-desc"></p>
+              </div>
+              <div style="text-align:right;">
+                <div class="result-hero-title">Pontos de Tomadas (TUGs)</div>
+                <div class="result-hero-value" id="res-prev-tugs" style="color:var(--accent-cyan); font-size:1.5rem;">3 Tomadas (300 VA)</div>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;" id="res-prev-tugs-desc"></p>
+              </div>
+            </div>
+
+            <div class="metric-card" style="margin-top:10px;">
+              <span class="metric-label">Demanda Mínima Prevista para o Cômodo</span>
+              <span class="metric-val highlight" id="res-prev-total" style="font-size:1.3rem;">460 VA</span>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         ABA 4: MOTORES & COMANDOS
+         ==================================================================== -->
+    <section class="tab-pane" id="tab-motores">
+      <div class="module-header">
+        <div class="module-title-group">
+          <h2>🔄 Motores & Comandos</h2>
+          <p>Corrente Nominal (In), Partida (Ip), Contatores AC-3 e Relés Térmicos</p>
+        </div>
+        <span class="norma-badge">Comandos Pro</span>
+      </div>
+
+      <form id="form-motores" onsubmit="event.preventDefault();">
+        <div class="calc-card">
+          <div class="card-title-row">
+            <h3>Dados do Motor Elétrico</h3>
+            <span class="card-subtitle">Placa de Identificação</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="mot-potencia">Potência do Motor</label>
+              <div class="input-wrap">
+                <input type="number" id="mot-potencia" class="form-control" value="5" min="0.25" step="any" inputmode="decimal">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="mot-unidade">Unidade de Potência</label>
+              <select id="mot-unidade" class="form-select">
+                <option value="CV" selected>CV (Cavalo-Vapor)</option>
+                <option value="HP">HP (Horsepower)</option>
+                <option value="kW">kW (Quilowatts)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="mot-tensao">Tensão de Alimentação (V)</label>
+              <select id="mot-tensao" class="form-select">
+                <option value="220" selected>220 V</option>
+                <option value="380">380 V</option>
+                <option value="440">440 V</option>
+                <option value="127">127 V (Monofásico)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="mot-sistema">Tipo de Rede</label>
+              <select id="mot-sistema" class="form-select">
+                <option value="tri" selected>Trifásico (3 Fases)</option>
+                <option value="mono">Monofásico (Fase + Neutro)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="mot-rendimento">Rendimento (η)</label>
+              <input type="number" id="mot-rendimento" class="form-control" value="0.84" min="0.5" max="1.0" step="0.01" inputmode="decimal">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="mot-fp">Fator de Potência (cos φ)</label>
+              <input type="number" id="mot-fp" class="form-control" value="0.85" min="0.5" max="1.0" step="0.01" inputmode="decimal">
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- RESULTADO MOTOR -->
+      <div class="result-box">
+        <div class="result-hero">
+          <div>
+            <div class="result-hero-title">Corrente Nominal de Operação (In)</div>
+            <div class="result-hero-value" id="res-mot-in">13.5 A</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="result-hero-title">Pico de Partida Direta (Ip)</div>
+            <div class="result-hero-value" id="res-mot-ip" style="color:var(--accent-orange); font-size:1.6rem;">94.5 A</div>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card">
+            <span class="metric-label">Contator Principal (AC-3)</span>
+            <span class="metric-val highlight" id="res-mot-contator">Contator 18A</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Faixa do Relé Térmico</span>
+            <span class="metric-val success" id="res-mot-rele">13A a 18A</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Cabo de Alimentação</span>
+            <span class="metric-val" id="res-mot-cabo">16.9 A (125%)</span>
+          </div>
+        </div>
+
+        <div class="metric-card" style="margin-top:12px;">
+          <span class="metric-label">Método de Partida Recomendado</span>
+          <span class="metric-val text-gold" id="res-mot-partida-nome" style="font-size:1.1rem;">Partida Direta (DOL)</span>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;" id="res-mot-partida-desc"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         ABA 5: PRECIFICAÇÃO & ORÇAMENTOS 2026
+         ==================================================================== -->
+    <section class="tab-pane" id="tab-precificacao">
+      <div class="module-header">
+        <div class="module-title-group">
+          <h2>💰 Precificação & Orçamentos 2026</h2>
+          <p>Catálogo Oficial de Preços de Serviços e Gerador de Propostas</p>
+        </div>
+        <span class="norma-badge">Tabela 2026</span>
+      </div>
+
+      <!-- CALCULADORA DE HORA TÉCNICA (CHT) -->
+      <div class="calc-card">
+        <div class="card-title-row">
+          <h3>Calculadora do Custo da Hora Técnica (CHT)</h3>
+          <span class="card-subtitle">Quanto custa sua hora de trabalho</span>
+        </div>
+
+        <form id="form-cht" onsubmit="event.preventDefault();">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="cht-custos-fixos">Custos Fixos Mensais (R$)</label>
+              <div class="input-wrap">
+                <input type="number" id="cht-custos-fixos" class="form-control has-addon" value="1500" min="0" step="50" inputmode="decimal">
+                <span class="input-addon">R$/mês</span>
+              </div>
+              <span class="form-hint">Gasolina, MEI, ferramentas, internet, seguros</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="cht-pro-labore">Meta de Salário Limpo (R$)</label>
+              <div class="input-wrap">
+                <input type="number" id="cht-pro-labore" class="form-control has-addon" value="6000" min="0" step="100" inputmode="decimal">
+                <span class="input-addon">R$/mês</span>
+              </div>
+              <span class="form-hint">Pró-labore líquido desejado para sua família</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="cht-horas-mes">Horas Produtivas no Mês</label>
+              <div class="input-wrap">
+                <input type="number" id="cht-horas-mes" class="form-control has-addon" value="120" min="10" max="240" inputmode="numeric">
+                <span class="input-addon">horas/mês</span>
+              </div>
+              <span class="form-hint">Média real: 120h (6h líquidas/dia x 20 dias)</span>
+            </div>
+          </div>
+
+          <div class="metric-grid" style="margin-top:14px;">
+            <div class="metric-card">
+              <span class="metric-label">Faturamento Bruto Mínimo</span>
+              <span class="metric-val" id="res-cht-fat">R$ 7.500,00</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Valor Mínimo da Hora Técnica</span>
+              <span class="metric-val highlight" id="res-cht-hora">R$ 62,50/h</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Valor Mínimo da Diária (8h)</span>
+              <span class="metric-val success" id="res-cht-diaria">R$ 500,00</span>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- CATÁLOGO DE SERVIÇOS 2026 -->
+      <div class="calc-card">
+        <div class="card-title-row">
+          <h3>Catálogo de Serviços Elétricos 2026</h3>
+          <span class="card-subtitle">Clique para adicionar à proposta</span>
+        </div>
+
+        <div class="service-catalog-grid" id="servicos-catalog-grid"></div>
+      </div>
+
+      <!-- ITENS DO ORÇAMENTO ATUAL -->
+      <div class="calc-card">
+        <div class="card-title-row">
+          <h3>Dados do Cliente & Proposta Atual</h3>
+          <button type="button" id="btn-limpar-orcamento" class="btn btn-danger btn-sm">Limpar Itens</button>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label" for="cli-nome">Nome do Cliente</label>
+            <input type="text" id="cli-nome" class="form-control" placeholder="Ex: Dr. Roberto Guimarães">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cli-tel">WhatsApp do Cliente</label>
+            <input type="tel" id="cli-tel" class="form-control" placeholder="(11) 98765-4321" inputmode="tel">
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label" for="cli-end">Endereço / Condomínio da Obra</label>
+            <input type="text" id="cli-end" class="form-control" placeholder="Ex: Rua das Palmeiras, 350 - Alphaville">
+          </div>
+        </div>
+
+        <!-- Lista de Itens Adicionados -->
+        <div class="dynamic-list" id="lista-itens-orcamento"></div>
+
+        <!-- Totais e Botões de Compartilhamento -->
+        <div class="result-box" style="margin-top:16px;">
+          <div class="result-hero">
+            <div>
+              <div class="result-hero-title">Subtotal Mão de Obra</div>
+              <div class="result-hero-value" id="res-orc-subtotal">R$ 0,00</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="result-hero-title">Valor Total da Proposta</div>
+              <div class="result-hero-value" id="res-orc-total" style="color:var(--accent-gold);">R$ 0,00</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+            <button type="button" id="btn-ver-proposta" class="btn btn-primary" style="flex:2; min-width:200px;">
+              📄 Visualizar Proposta
+            </button>
+            <button type="button" id="btn-enviar-whatsapp" class="btn btn-whatsapp" style="flex:2; min-width:200px;">
+              📲 Enviar no WhatsApp
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         ABA 6: GUIA RÁPIDO & TABELAS DE BOLSO
+         ==================================================================== -->
+    <section class="tab-pane" id="tab-guia">
+      <div class="module-header">
+        <div class="module-title-group">
+          <h2>📚 Guia de Bolso Offline</h2>
+          <p>Tabelas Práticas e Código de Cores Oficial NBR 5410</p>
+        </div>
+        <span class="norma-badge">Consulta Rápida</span>
+      </div>
+
+      <!-- Cores de Condutores -->
+      <div class="calc-card">
+        <div class="card-title-row">
+          <h3>Código de Cores de Cabos (NBR 5410)</h3>
+        </div>
+        <div class="metric-grid" id="guia-cores-grid"></div>
+      </div>
+
+      <!-- Tabela Direta Chuveiros -->
+      <div class="calc-card">
+        <div class="card-title-row">
+          <h3>Tabela Direta: Chuveiros Elétricos</h3>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.8125rem; text-align:left;">
+            <thead>
+              <tr style="background:var(--bg-input); color:var(--text-muted);">
+                <th style="padding:8px 10px;">Tensão</th>
+                <th style="padding:8px 10px;">Potência</th>
+                <th style="padding:8px 10px;">Corrente</th>
+                <th style="padding:8px 10px;">Cabo</th>
+                <th style="padding:8px 10px;">Disjuntor</th>
+              </tr>
+            </thead>
+            <tbody id="guia-chuveiros-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tabela Direta Ar-Condicionado -->
+      <div class="calc-card">
+        <div class="card-title-row">
+          <h3>Tabela Direta: Ar-Condicionado Split (220V)</h3>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.8125rem; text-align:left;">
+            <thead>
+              <tr style="background:var(--bg-input); color:var(--text-muted);">
+                <th style="padding:8px 10px;">Capacidade</th>
+                <th style="padding:8px 10px;">Potência</th>
+                <th style="padding:8px 10px;">Corrente</th>
+                <th style="padding:8px 10px;">Cabo</th>
+                <th style="padding:8px 10px;">Disjuntor</th>
+              </tr>
+            </thead>
+            <tbody id="guia-ar-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       MODAL DE PRÉ-VISUALIZAÇÃO DA PROPOSTA COMERCIAL
+       ======================================================================== -->
+  <div class="modal-backdrop" id="modal-proposta">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">Proposta Comercial Timbrada</h3>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-fechar-modal">✕ Fechar</button>
+      </div>
+      <div class="modal-body">
+        <div class="quote-paper" id="paper-proposta-preview"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-copiar-proposta">📋 Copiar Texto</button>
+        <button type="button" class="btn btn-secondary" id="btn-imprimir-proposta">🖨️ Imprimir / PDF</button>
+        <button type="button" class="btn btn-whatsapp" onclick="abrirWhatsAppCliente()">📲 Enviar WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       BARRA DE NAVEGAÇÃO INFERIOR (BOTTOM NAVIGATION)
+       ======================================================================== -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="tab-condutores">
+      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span class="nav-label">Cabos</span>
+    </button>
+
+    <button class="nav-item" data-tab="tab-protecao">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="nav-label">Proteção</span>
+    </button>
+
+    <button class="nav-item" data-tab="tab-eletrodutos">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M6 12h12"/></svg>
+      <span class="nav-label">Conduítes</span>
+    </button>
+
+    <button class="nav-item" data-tab="tab-motores">
+      <svg viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+      <span class="nav-label">Motores</span>
+    </button>
+
+    <button class="nav-item" data-tab="tab-precificacao">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span class="nav-label">Orçamentos</span>
+    </button>
+
+    <button class="nav-item" data-tab="tab-guia">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span class="nav-label">Guia</span>
+    </button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="./js/dimensionamento.js"></script>
+  <script src="./js/protecao.js"></script>
+  <script src="./js/eletrodutos.js"></script>
+  <script src="./js/motores.js"></script>
+  <script src="./js/precificacao.js"></script>
+  <script src="./js/guia.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
